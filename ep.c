@@ -86,37 +86,31 @@ float* leArquivo (char* nomeArquivo, int quantidadeLinhas, int quantidadeColunas
     return array;
 }
 
-float* knn (int k, float *xtrain, float *ytrain, float *xtest) {
+// Recebe os vetores de treinamento e uma linha do vetor de teste e retorna a classe/classificação do vetor de teste
+int knn (float *xtrain, float *ytrain, float *linhaXtest) {
     float* distancias = (float*) malloc(sizeof(float)*576);
-    float* ytest = (float*) malloc(sizeof(float)*k);
     int inicio = 0;
 
-    for(int index = 0; index < k; index++) {
-        for (int i = 0; i < 576; i++) {
-            float distancia = 0;
-            for (int j = inicio; j < inicio+8; j++) {
-                float operacao = xtest[j] - xtrain[(j - inicio) + i * 8];
-                distancia += (operacao * operacao);
-                //distancia += pow(xtest[j] - xtrain[(j - inicio) + i * 8], 2);
-            }
-            distancias[i] = distancia;
+    for (int i = 0; i < 576; i++) {
+        float distancia = 0;
+        for (int j = inicio; j < inicio+8; j++) {
+            float operacao = linhaXtest[j] - xtrain[j + i * 8];
+            distancia += (operacao * operacao);   //Eleva ao quadrado
         }
+        distancias[i] = distancia;
+    }
         
-        float menorDistancia = distancias[0];
-        int posicaoMenor = 0;
+    float menorDistancia = distancias[0];
+    int posicaoMenor = 0;
     
-        for (int i = 1; i < 576; i++) {
-            if (distancias[i] < menorDistancia) {
-                menorDistancia = distancias[i];
-                posicaoMenor = i;
-            }
+    for (int i = 1; i < 576; i++) {
+        if (distancias[i] < menorDistancia) {
+            menorDistancia = distancias[i];
+            posicaoMenor = i;
         }
-
-        ytest[index] = ytrain[posicaoMenor];
-        inicio +=8 ;
     }
 
-    return ytest;
+    return ytrain[posicaoMenor];
 }
 
 void salvarVetorEmArquivo(char *nomeArquivo, float* vetor, int tam) {
@@ -156,8 +150,21 @@ int main (int argc, char** argv) {
             xtest = leArquivo(argv[i], linhas, colunas);
     }
 
-    float* ytest = knn(contarLinhas("xtest.txt"), xtrain, ytrain, xtest);
-    salvarVetorEmArquivo("ytest.txt", ytest, 192); 
+    float* ytest = (float*) malloc(sizeof(float)*contarLinhas("xtest.txt"));
+    int contadorDeElementos = 0;
+
+    for (int i = 0; i < contarLinhas("xtest.txt"); i++) {
+        float* linhaXtest = (float*) malloc(sizeof(float)*contarColunas("xtest.txt"));
+
+        for(int j = contadorDeElementos; j < contadorDeElementos+8; j++)   
+            linhaXtest[j%8] = xtest[j];
+
+        ytest[i] = knn(xtrain, ytrain, linhaXtest);
+        contadorDeElementos += 8;
+        free(linhaXtest);
+    }
+
+    salvarVetorEmArquivo("ytest.txt", ytest, contarLinhas("xtest.txt")); 
 
     return 0;
 }

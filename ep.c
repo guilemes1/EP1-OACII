@@ -113,7 +113,7 @@ int knn (float *xtrain, float *ytrain, float *linhaXtest) {
     return ytrain[posicaoMenor];
 }
 
-void salvarVetorEmArquivo(char *nomeArquivo, float* vetor, int tam) {
+void    salvarVetorEmArquivo(char *nomeArquivo, float* vetor, int tam) {
     FILE *arquivo = fopen(nomeArquivo, "w");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo para escrita.\n");
@@ -121,7 +121,10 @@ void salvarVetorEmArquivo(char *nomeArquivo, float* vetor, int tam) {
     }
 
     for (int i = 0; i < tam; i++) {
-        fprintf(arquivo, "%.1f\n", vetor[i]);
+        if(i != tam-1)
+            fprintf(arquivo, "%.1f\n", vetor[i]);
+        else
+            fprintf(arquivo, "%.1f", vetor[i]);
     }
 
     fclose(arquivo);
